@@ -20,7 +20,7 @@ def mod_inverse(a, m):
 def generate_keypair(p, q):
     n = p * q
     phi = (p - 1) * (q - 1)
-    e = 65537  # constant
+    e = 6553   #65537  #17 #3 #257 #6553 # constant
     d = mod_inverse(e, phi)
     return ((n, e), (n, d))
 
@@ -39,20 +39,45 @@ def save_keys(filename, public_key, encrypted_text):
         file.write(f"{public_key[0]},{public_key[1]}\n")
         file.write(str(encrypted_text))
         
-p = int(input("Enter p: "))
-q = int(input("Enter q: "))
-x = input("Enter plaintext x: ")
+def encrypt_text():
+    p = int(input("Enter p: "))
+    q = int(input("Enter q: "))
+    x = input("Enter plaintext x: ")
 
-public_key, private_key = generate_keypair(p, q)
+    public_key, private_key = generate_keypair(p, q)
 
-encrypted_text = encrypt(public_key, x)
+    encrypted_text = encrypt(public_key, x)
 
-save_keys("keys.txt", public_key, encrypted_text)
-print("Saved to file")
+    save_keys("keys.txt", public_key, encrypted_text)
+    print("Saved to file")
 
-decrypted_text = decrypt(private_key, encrypted_text)
+    decrypted_text = decrypt(private_key, encrypted_text)
 
-# print("Public Key (n, e):", public_key)
-# print("Private Key (n, d):", private_key)
-print("Encrypted Text:", encrypted_text)
-print("Decrypted Text:", decrypted_text)
+    print("Encrypted Text:", encrypted_text)
+    print("Decrypted Text:", decrypted_text)
+
+def decrypt_text_from_file(filename="keys.txt"):
+    with open(filename, 'r') as file:
+        public_key_str, encrypted_text_str = file.readlines()
+        n, e = map(int, public_key_str.split(','))
+        public_key = (n, e)
+        encrypted_text = eval(encrypted_text_str)  # This assumes encrypted_text_str is a string representation of a list
+
+    p, q = 53, 59  # Default values if p and q are not provided
+    private_key = (public_key[0], mod_inverse(public_key[1], (p - 1) * (q - 1)))  # Reconstruct private key based on p and q
+
+    decrypted_text = decrypt(private_key, encrypted_text)
+
+    print("Decrypted Text:", decrypted_text)
+
+def main():
+    choice = input("Enter 'encrypt' to encrypt text or 'decrypt' to decrypt text from a file: ")
+    if choice.lower() == 'encrypt':
+        encrypt_text()
+    elif choice.lower() == 'decrypt':
+        decrypt_text_from_file()
+    else:
+        print("Invalid choice")
+
+if __name__ == "__main__":
+    main()
